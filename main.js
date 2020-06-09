@@ -17,6 +17,11 @@ const __ = require('./providers/translateProvider')
 const isDev = require('electron-is-dev')
 const ClipboardWatcher = require('electron-clipboard-watcher')
 const electronLocalshortcut = require('electron-localshortcut')
+const ytdl = require('ytdl-core')
+const ffmpeg = require('fluent-ffmpeg')
+const request = require('request')
+const fs = require('fs')
+const ytpl = require('ytpl')
 
 const assetsProvider = require('./providers/assetsProvider')
 const scrobblerProvider = require('./providers/scrobblerProvider')
@@ -43,7 +48,8 @@ let mainWindow,
     customCSSAppKey,
     customCSSPageKey,
     lastTrackId,
-    doublePressPlayPause
+    doublePressPlayPause,
+    queue = []
 
 let isFirstTime = (isClipboardWatcherRunning = false)
 
@@ -224,7 +230,7 @@ function createWindow() {
 
     // Open the DevTools.
     // mainWindow.webContents.openDevTools({ mode: 'detach' });
-    // view.webContents.openDevTools({ mode: 'detach' })
+    view.webContents.openDevTools({ mode: 'detach' })
 
     mediaControl.createThumbar(mainWindow, infoPlayerProvider.getAllInfo())
 
@@ -252,7 +258,6 @@ function createWindow() {
         // when you should delete the corresponding element.
         mainWindow = null
     })
-
     mainWindow.on('show', function() {
         globalShortcut.unregister('CmdOrCtrl+M')
 
@@ -292,6 +297,7 @@ function createWindow() {
     })
 
     view.webContents.on('media-started-playing', function() {
+        ipcMain.emit('media-started')
         if (!infoPlayerProvider.hasInitialized()) {
             infoPlayerProvider.init(view)
             mprisProvider.setRealPlayer(infoPlayerProvider) //this lets us keep track of the current time in playback.
@@ -565,12 +571,12 @@ function createWindow() {
     })
 
     /*ipcMain.on("will-close-mainwindow", function() {
-    if (settingsProvider.get("settings-keep-background")) {
-      mainWindow.hide();
-    } else {
-      app.exit();
-    }
-  });*/
+if (settingsProvider.get("settings-keep-background")) {
+  mainWindow.hide();
+} else {
+  app.exit();
+}
+});*/
 
     ipcMain.on('settings-value-changed', (e, data) => {
         switch (data.key) {
@@ -615,7 +621,9 @@ function createWindow() {
                 break
         }
     })
-
+    ipcMain.on('media-stop', () => {
+        if (!global.sharedObj.paused) mediaControl.playPauseTrack(view)
+    })
     ipcMain.on('media-command', (dataMain, dataRenderer) => {
         let command, value
 
@@ -954,7 +962,222 @@ function createWindow() {
     ipcMain.on('change-audio-output', (event, data) => {
         setAudioOutput(data)
     })
-
+    // Downloads section
+    ipcMain.on('download-playlist', async (event, url) => {
+        console.log(url)
+        ytpl(url, async (err, playlist) => {
+            if (!err) {
+                const dir = path.join(app.getPath('music') + '/YTMusic/')
+                let cache = JSON.parse(fileSystem.readFile(dir + 'cache.json'))
+                cache.playlists[playlist.title] = []
+                fileSystem.writeFile(dir + 'cache.json', JSON.stringify(cache))
+                let index = 0
+                for (const e of playlist.items) {
+                    const a = async () => {
+                        if (index === 0) console.log(e)
+                        const info = await ytdl
+                            .getBasicInfo(e.url_simple)
+                            .catch(err => {
+                                console.log(err)
+                            })
+                        console.log([
+                            info.videoDetails.author.name,
+                            info.videoDetails.title,
+                            info.player_response.videoDetails.thumbnail
+                                .thumbnails[
+                                info.player_response.videoDetails.thumbnail
+                                    .thumbnails.length - 1
+                            ].url,
+                        ])
+                        queue.push({
+                            author: e.author.name,
+                            title: e.title,
+                            cover:
+                                info.player_response.videoDetails.thumbnail
+                                    .thumbnails[
+                                    info.player_response.videoDetails.thumbnail
+                                        .thumbnails.length - 1
+                                ].url,
+                            durationHuman: e.duration,
+                            url: e.url_simple,
+                            id: e.id,
+                            playlist: playlist.title,
+                        })
+                        if (index === 0) {
+                            console.log('download')
+                            if (!queue[1]) downloadSong(queue[0])
+                        }
+                        index += 1
+                    }
+                    await a()
+                }
+            } else {
+                console.log(err)
+            }
+        })
+    })
+    ipcMain.on('download-current', async d => {
+        let track = JSON.parse(
+            JSON.stringify(infoPlayerProvider.getTrackInfo())
+        )
+        track.playlist = 'default'
+        queue.push(track)
+        if (!queue[1]) downloadSong(queue[0])
+    })
+    ipcMain.on('load-downloaded', (e, args) => {
+        const dir = path.join(app.getPath('music') + '/YTMusic/')
+        e.returnValue = {
+            data: JSON.parse(fileSystem.readFile(dir + 'cache.json')),
+            path: dir,
+        }
+    })
+    ipcMain.on('show-offline', function() {
+        const offPage = new BrowserWindow({
+            title: 'Offline Player',
+            modal: false,
+            frame: windowConfig.frame,
+            titleBarStyle: windowConfig.titleBarStyle,
+            center: true,
+            resizable: true,
+            backgroundColor: '#000',
+            width: 400,
+            resizable: false,
+            minWidth: 360,
+            height: 715,
+            minHeight: 715,
+            autoHideMenuBar: false,
+            skipTaskbar: false,
+            webPreferences: {
+                nodeIntegration: true,
+                webviewTag: true,
+            },
+        })
+        // settings.loadFile(path.join(app.getAppPath(), "/pages/settings/settings.html"));
+        offPage.loadFile(
+            path.join(
+                __dirname,
+                './pages/shared/window-buttons/window-buttons.html'
+            ),
+            {
+                search:
+                    'page=player/player&hide=btn-maximize&icon=video_library',
+            }
+        )
+        offPage.webContents.executeJavaScript(`
+      document.getElementById('content').style.marginTop = "28px"
+      document.getElementById('webview').style.height = "100vh"
+    `)
+        //offPage.webContents.openDevTools()
+        ipcMain.on('oPlayer_ready', event => {
+            ipcMain.on('media-started', () => {
+                event.sender.send('media-started')
+            })
+            ipcMain.on('new-download', track => {
+                console.log('new download')
+                event.sender.send('new-download', track)
+            })
+        })
+    })
+    async function downloadSong(track) {
+        if (!track.title) return
+        console.log(track)
+        let dir = path.join(app.getPath('music') + `/YTMusic/${track.author}/`)
+        !fileSystem.checkIfExists(dir) && fileSystem.createDir(dir)
+        const cache_data = JSON.parse(
+            fileSystem.readFile(
+                path.join(app.getPath('music') + '/YTMusic/cache.json')
+            )
+        )
+        if (cache_data.all.find(e => e.id === track.id)) {
+            let cached_track = cache_data.all.find(e => e.id === track.id)
+            if (cached_track.playlists.includes(track.playlist)) return
+            cached_track.playlists.push(track.playlist)
+            if (track.playlist === 'default')
+                cache_data.default.push(cached_track)
+            else cache_data.playlists[track.playlist].push(cached_track)
+            fileSystem.writeFile(
+                path.join(app.getPath('music') + '/YTMusic/cache.json'),
+                JSON.stringify(cache_data)
+            )
+        }
+        view.webContents.executeJavaScript(`
+  if (!modal) {
+    var modal = document.createElement('div')
+    modal.id = "ytmd-modal"
+    modal.style.transition = "opacity .15s cubic-bezier(0,0,.2,1) 0ms,transform .15s cubic-bezier(0,0,.2,1) 0ms,-webkit-transform .15s cubic-bezier(0,0,.2,1) 0ms;"
+    modal.style.position = "fixed"
+    modal.style.background = "#232323"
+    modal.style.height = "70px"
+    modal.style.width = "250px"
+    modal.style.display = "flex"
+    modal.style.flexDirection = "column"
+    modal.style.bottom = "80px"
+    modal.style.justifyContent = "center"
+    modal.style.padding = "15px"
+    modal.style.textAlign = "center"
+    modal.style.zIndex = "99999"
+    modal.style.transform = "scale(0.8)"
+  }
+  modal.innerHTML = "" 
+  modal.style.opacity = "0"
+  modal.innerHTML += '<i class="material-icons close" id="close">close</i>' +'<h2 style="color: rgb(170,170,170);font-weight: 100;font-size: 12px;margin-top: 5px;overflow-wrap: break-word;">Downloading ${track.author.replace(
+      /['"]+/g,
+      ' '
+  )} - ${track.title.replace(
+            /['"]+/g,
+            ' '
+        )}</h2><div id="progress" style="      width: 96%;       margin: auto;      border: 1px solid rgb(170,170,170);      height: 10px;      border-radius: 5vw">    <div id="bar" style="    width: 0%;    transition: 0.5s all ease;    background: rgb(39,147,232);    height: 100%;    border-radius: 5vw;    "></div>  </div>  <style>    .close {      position: absolute;      top: 5px;      right: 5px;      font-size: 14px;      cursor: pointer;    }  </style>'
+  document.getElementsByTagName('body')[0].appendChild(modal)
+    modal.style.opacity = "1"
+  modal.style.transform = "scale(1)"
+  `)
+        // settings.loadFile(path.join(app.getAppPath(), "/pages/settings/settings.html"));
+        let filename = fileSystem.filenamify(track.title)
+        try {
+            const info = await ytdl.getInfo(track.url)
+            const format = info.formats.reduce((acc, x) => {
+                if (x.itag > acc && x.audioCodec === 'opus') acc = x.itag
+                return acc
+            }, 0)
+            ytdl.downloadFromInfo(info, { format })
+                .on('progress', (chunkLength, downloaded, total) => {
+                    const percent = downloaded / total
+                    view.webContents.executeJavaScript(`
+          document.getElementById('bar').style.width = "${Math.round(
+              percent * 100
+          )}%"
+        `)
+                })
+                .on('end', () => {
+                    request(track.cover).pipe(
+                        fs.createWriteStream(dir + `${filename}.jpg`)
+                    )
+                    delete track.statePercent
+                    track.filename = filename
+                    track.playlist = [track.playlist]
+                    if (track.playlist[0] === 'default')
+                        cache_data.default.push(track)
+                    else cache_data.playlists[track.playlist[0]].push(track)
+                    cache_data.all.push(track)
+                    fileSystem.writeFile(
+                        path.join(app.getPath('music') + '/YTMusic/cache.json'),
+                        JSON.stringify(cache_data)
+                    )
+                    ipcMain.emit('new-download', track)
+                    queue.shift()
+                    setTimeout(() => {
+                        view.webContents.executeJavaScript(`
+            document.getElementById("ytmd-modal").parentNode.removeChild(document.getElementById("ytmd-modal"))
+          `)
+                        if (queue[0]) downloadSong(queue[0])
+                    }, 1000)
+                })
+                .pipe(fs.createWriteStream(`${dir}/${filename}.opus`))
+        } catch (e) {
+            console.log(e)
+            if (e) return
+        }
+    }
     function setAudioOutput(audioLabel) {
         view.webContents
             .executeJavaScript(
@@ -1107,7 +1330,17 @@ if (!gotTheLock) {
         )
 
         createWindow()
-
+        if (
+            !fileSystem.checkIfExists(
+                path.join(app.getPath('music') + '/YTMusic/cache.json')
+            )
+        ) {
+            fileSystem.createDir(app.getPath('music') + '/YTMusic')
+            fileSystem.writeFile(
+                path.join(app.getPath('music') + '/YTMusic/cache.json'),
+                JSON.stringify({ playlists: {}, default: [], all: [] })
+            )
+        }
         tray.createTray(mainWindow, assetsProvider.getIcon('favicon'))
 
         ipcMain.on('updated-tray-image', function(event, payload) {
@@ -1125,8 +1358,8 @@ if (!gotTheLock) {
     })
 
     /*app.on('ready', function(ev) {
-        
-    })*/
+    
+})*/
 
     app.on('browser-window-created', function(e, window) {
         window.removeMenu()

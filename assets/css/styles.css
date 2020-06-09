@@ -1,19 +1,20 @@
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     height: 100%;
     overflow: hidden;
     user-select: none;
-    color: #FFF;
-    background-color: #1D1D1D;
+    color: #fff;
+    background-color: #1d1d1d;
 }
 
 .drag {
-    -webkit-app-region:drag;
+    -webkit-app-region: drag;
 }
 
 .no-drag {
-    -webkit-app-region: no-drag
+    -webkit-app-region: no-drag;
 }
 
 .pointer {
@@ -33,7 +34,7 @@ html, body {
 
 .bar .title {
     padding: 3px 0 0 6px;
-    color: #FFF;
+    color: #fff;
 }
 
 .bar .title i {
@@ -59,7 +60,7 @@ html, body {
 }
 
 .cmd-btn:hover {
-    background: rgba( 255, 255, 255, 0.1 );
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .hide {
@@ -71,13 +72,13 @@ html, body {
 }
 
 .shortcut-or {
-    color: #AAA;
+    color: #aaa;
 }
 
 .center-flex {
-    width: 100vw; 
-    min-height: 100vh; 
-    text-align: center; 
+    width: 100vw;
+    min-height: 100vh;
+    text-align: center;
     line-height: 100vh;
 
     font-size: 20px;
@@ -86,7 +87,7 @@ html, body {
 .is-offline {
     width: 100%;
     text-align: center;
-    color: #EEE;
+    color: #eee;
 }
 
 .content {

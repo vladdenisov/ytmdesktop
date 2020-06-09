@@ -14,13 +14,42 @@ content.addListener('dom-ready', function() {
                 createRightContent()
                 playerBarScrollToChangeVolume()
                 createPlayerBarContent()
+                createDownloadsButtons()
             } else {
                 createOffTheRoadContent()
             }
         })
         .catch(_ => ipcRenderer.send('debug', 'error on inject'))
 })
-
+function createDownloadsButtons() {
+    content.executeJavaScript(`
+    console.log()
+  `)
+    content.addListener('did-navigate-in-page', (e, url) => {
+        if (url.includes('playlist') || url.includes('album'))
+            content.executeJavaScript(`
+    if (!dButton) var dButton = document.createElement('div')
+    dButton.innerHTML = "<i class='material-icons' style='margin-right: 5px'>get_app</i>Download"
+    document.getElementById("top-level-buttons").appendChild(dButton)
+    dButton.style.border = "1px solid rgb(170,170,170);"
+    dButton.style.borderRadius = "2px"
+    dButton.style.fontFamily = "Roboto"
+    dButton.style.display = "flex"
+    dButton.style.justifyContent = "center"
+    dButton.style.alignItems = "center"
+    dButton.style.padding = "0px 8px"
+    dButton.style.marginLeft = "1em"
+    dButton.style.cursor = "pointer"
+    dButton.addEventListener("click", () => {
+      ipcRenderer.send("download-playlist", "${url}")
+    })
+    `)
+    })
+    console.log(content.getURL())
+    if (content.getURL().includes('playlist')) {
+        console.log('playlist')
+    }
+}
 function createContextMenu() {
     content.executeJavaScript(`
         var materialIcons = document.createElement('link');
@@ -192,6 +221,17 @@ function createRightContent() {
         
         right_content.prepend(elementSettings);
 
+        // Offline player
+        const OPlayer = document.createElement('i')
+        OPlayer.id = 'ytmd_settings';
+        OPlayer.classList.add('material-icons', 'pointer', 'ytmd-icons');
+        OPlayer.style.color = '#909090';
+        OPlayer.innerText = 'cloud_download';
+
+        OPlayer.addEventListener('click', function() { ipcRenderer.send('show-offline', true); } )
+        
+        right_content.prepend(OPlayer);
+        
         // UPDATE
         var element = document.createElement('i');
         element.id = 'ytmd_update';
@@ -205,7 +245,10 @@ function createRightContent() {
 
         ipcRenderer.on('downloaded-new-update', function(e, data) {
             document.getElementById("ytmd_update").classList.remove("hide");
-        } );`)
+        });
+        
+
+        `)
 }
 
 function createPlayerBarContent() {
@@ -230,6 +273,14 @@ function createPlayerBarContent() {
 
         elementMiniplayer.addEventListener('click', function() { ipcRenderer.send('show-miniplayer', true); } )
         playerBarRightControls.append(elementMiniplayer);
+
+        var elementDownload = document.createElement('i');
+        elementDownload.id = 'ytmd_download';
+        elementDownload.classList.add('material-icons', 'pointer', 'ytmd-icons');
+        elementDownload.innerText = 'get_app';
+
+        elementDownload.addEventListener('click', function() { ipcRenderer.send('download-current'); } )
+        playerBarRightControls.append(elementDownload);
     `)
 }
 

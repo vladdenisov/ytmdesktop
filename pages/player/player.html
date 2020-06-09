@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>YouTube Music Cached</title>
+        <link href="../../assets/css/material_icons.css" rel="stylesheet" />
+        <link
+            type="text/css"
+            rel="stylesheet"
+            href="../../assets/css/styles.css"
+        />
+        <link
+            type="text/css"
+            rel="stylesheet"
+            href="../../node_modules/materialize-css/dist/css/materialize.min.css"
+            media="screen,projection"
+        />
+        <link type="text/css" rel="stylesheet" href="./player.css" />
+    </head>
+
+    <body>
+        <div class="track_list"></div>
+        <div id="player-main">
+            <div id="cover-art">
+                <img
+                    data-amplitude-song-info="cover_art_url"
+                    class="main-album-art"
+                />
+            </div>
+            <div id="metadata">
+                <div class="song-meta-data">
+                    <span
+                        data-amplitude-song-info="name"
+                        class="song-name"
+                    ></span>
+                    <span
+                        data-amplitude-song-info="artist"
+                        class="song-artist"
+                    ></span>
+                </div>
+            </div>
+            <div id="progress-container">
+                <input
+                    type="range"
+                    class="amplitude-song-slider browser-default"
+                />
+            </div>
+            <div id="timestamp">
+                <div class="time-container">
+                    <span class="current-time">
+                        <span class="amplitude-current-minutes"></span>:<span
+                            class="amplitude-current-seconds"
+                        ></span>
+                    </span>
+                    <span class="duration">
+                        <span class="amplitude-duration-minutes"></span>:<span
+                            class="amplitude-duration-seconds"
+                        ></span>
+                    </span>
+                </div>
+            </div>
+            <div id="bottom-controls">
+                <div
+                    class="amplitude-shuffle amplitude-shuffle-off material-icons material-icons.outlined"
+                    id="shuffle"
+                >
+                    shuffle
+                </div>
+                <div
+                    class="amplitude-prev material-icons material-icons.outlined"
+                    id="previous"
+                >
+                    skip_previous
+                </div>
+                <div
+                    class="amplitude-play-pause material-icons material-icons.outlined"
+                    id="play-pause"
+                >
+                    play_arrow
+                </div>
+                <div
+                    class="amplitude-next material-icons material-icons.outlined"
+                    id="next"
+                >
+                    skip_next
+                </div>
+                <div
+                    class="amplitude-repeat material-icons material-icons.outlined"
+                    id="repeat"
+                >
+                    repeat
+                </div>
+            </div>
+            <input
+                type="range"
+                class="amplitude-volume-slider browser-default"
+            />
+        </div>
+        <script src="../../node_modules/materialize-css/dist/js/materialize.min.js"></script>
+        <script src="./player.js"></script>
+    </body>
+</html>

@@ -99,10 +99,10 @@ body.showinfo .hide-on-play {
 
 .progress-bar {
     margin-top: 1.4vmin;
-    height: .6vmin;
+    height: 0.6vmin;
     width: 100vw;
     background: rgba(255, 255, 255, 0.2);
-    transition: .2s ease-out;
+    transition: 0.2s ease-out;
 }
 
 body:hover .progress-bar,
@@ -114,7 +114,7 @@ body.showinfo .progress-bar {
 #progress {
     height: 100%;
     width: 0;
-    background: #FF0000;
+    background: #ff0000;
 }
 
 #secondsEffect {
@@ -127,12 +127,16 @@ body.showinfo .progress-bar {
 
 #secondsEffect.left {
     left: 0;
-    background: linear-gradient(to right, rgba(255, 255, 255, .5), transparent);
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.5),
+        transparent
+    );
 }
 
 #secondsEffect.right {
     right: 0;
-    background: linear-gradient(to left, rgba(255, 255, 255, .5), transparent);
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.5), transparent);
 }
 
 /* Hover hack for windows */

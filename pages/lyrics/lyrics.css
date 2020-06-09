@@ -1,6 +1,6 @@
 html,
 body {
-    background-color: #1D1D1D;
+    background-color: #1d1d1d;
     color: #fff;
 
     /* padding: 5px; */
@@ -41,9 +41,9 @@ body {
     overflow: auto;
     width: 100%;
     height: 94%;
-    margin-top: 34px; 
+    margin-top: 34px;
     padding: 40% 5px 5px 5px;
-    transition: .5s ease-in-out all;
+    transition: 0.5s ease-in-out all;
 }
 
 #lyric {

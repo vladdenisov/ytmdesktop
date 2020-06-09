@@ -67,7 +67,9 @@ document.addEventListener('DOMContentLoaded', function() {
 })
 
 // ENABLE FOR DEBUG
-// webview.addEventListener("did-start-loading", () => { webview.openDevTools(); });
+webview.addEventListener('did-start-loading', () => {
+    webview.openDevTools()
+})
 
 function checkUrlParams() {
     const params = new URL(window.location).searchParams

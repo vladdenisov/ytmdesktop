@@ -2,38 +2,38 @@ productName: YouTube Music Desktop App
 appId: app.ytmd
 
 files:
-  - '**/*'
-  - '!LICENSE.md'
-  - '!package.json'
-  - '!package-lock.json'
-  - '!.cache'
+    - '**/*'
+    - '!LICENSE.md'
+    - '!package.json'
+    - '!package-lock.json'
+    - '!.cache'
 
 electronDownload:
-  arch: x64
-  cache: '.cache/electron-builder/'
+    arch: x64
+    cache: '.cache/electron-builder/'
 
 win:
-  icon: assets
-  publish:
-    provider: generic
-    url: 'https://dl.ytmdesktop.app/win'
-    channel: latest
+    icon: assets
+    publish:
+        provider: generic
+        url: 'https://dl.ytmdesktop.app/win'
+        channel: latest
 
 mac:
-  icon: assets
-  category: public.app-category.music
-  darkModeSupport: true
-  target:
-    - dmg
-  publish:
-    provider: generic
-    url: 'https://dl.ytmdesktop.app/mac'
-    channel: latest
+    icon: assets
+    category: public.app-category.music
+    darkModeSupport: true
+    target:
+        - dmg
+    publish:
+        provider: generic
+        url: 'https://dl.ytmdesktop.app/mac'
+        channel: latest
 
 linux:
-  icon: assets
-  category: AudioVideo
-  publish:
-    provider: generic
-    url: 'https://dl.ytmdesktop.app/lin'
-    channel: latest
+    icon: assets
+    category: AudioVideo
+    publish:
+        provider: generic
+        url: 'https://dl.ytmdesktop.app/lin'
+        channel: latest

@@ -1,5 +1,5 @@
 body {
-    background-color: #1D1D1D;
+    background-color: #1d1d1d;
 }
 
 label {
@@ -32,11 +32,11 @@ a {
     background-color: #f44336 !important;
 }
 
-.switch label input[type="checkbox"]:checked+.lever {
+.switch label input[type='checkbox']:checked + .lever {
     background-color: #d32f2f;
 }
 
-.switch label input[type="checkbox"]:checked+.lever:after {
+.switch label input[type='checkbox']:checked + .lever:after {
     background-color: #f44336;
 }
 
@@ -47,8 +47,8 @@ a {
     padding: 0 !important;
 }
 
-.dropdown-content li>a,
-.dropdown-content li>span {
+.dropdown-content li > a,
+.dropdown-content li > span {
     color: #fff !important;
 }
 
@@ -74,31 +74,31 @@ a {
     color: #fff !important;
 }
 
-input[type="range"] {
+input[type='range'] {
     border: 1px solid #d32f2f;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
     background-color: #f44336;
 }
 
-input[type="range"]::-moz-range-thumb {
+input[type='range']::-moz-range-thumb {
     background-color: #f44336;
 }
 
-input[type="range"]::-ms-thumb {
+input[type='range']::-ms-thumb {
     background-color: #f44336;
 }
 
-input[type="range"]+.thumb {
+input[type='range'] + .thumb {
     background-color: #fff;
 }
 
-input[type="range"]+.thumb.active .value {
+input[type='range'] + .thumb.active .value {
     color: #f44336;
 }
 
-input[type="range"]::-webkit-slider-runnable-track {
+input[type='range']::-webkit-slider-runnable-track {
     background: #d32f2f;
 }
 
@@ -160,13 +160,13 @@ input[type="range"]::-webkit-slider-runnable-track {
 }
 
 .tabs-vertical .tab .active {
-    -moz-transition: border-color .5s ease;
-    -o-transition: border-color .5s ease;
-    -webkit-transition: border-color .5s ease;
-    transition: border-color .5s ease;
+    -moz-transition: border-color 0.5s ease;
+    -o-transition: border-color 0.5s ease;
+    -webkit-transition: border-color 0.5s ease;
+    transition: border-color 0.5s ease;
     border-left: 3px solid #d32f2f;
     color: #3f51b5;
-    background-color: rgba(255,255,255,0.1) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .tabs-vertical .tab a {
@@ -210,10 +210,9 @@ input[type="range"]::-webkit-slider-runnable-track {
     padding: 5px;
     bottom: 0;
     width: 100%;
-    background-color: #1D1D1D;
+    background-color: #1d1d1d;
     text-transform: none;
 }
-
 
 .dropdown-trigger {
     min-width: 300px;
@@ -226,6 +225,6 @@ input[type="range"]::-webkit-slider-runnable-track {
     line-height: normal;
 }
 
-input[type=range]+.thumb {
+input[type='range'] + .thumb {
     display: none;
 }
